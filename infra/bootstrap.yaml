@@ -1,0 +1,18 @@
+#!/usr/bin/env ansible-playbook
+- name: init
+  hosts: deploycamp
+  become: true
+  roles:
+    - role: geerlingguy.security
+      tags: ["security"]
+    - role: geerlingguy.firewall
+      tags: ["firewall"]
+    - role: geerlingguy.docker
+      tags: ["docker"]
+  pre_tasks:
+    - name: bootstrap
+      tags: ["bootstrap"]
+      block:
+        - name: apt update
+          ansible.builtin.apt:
+            update_cache: true
