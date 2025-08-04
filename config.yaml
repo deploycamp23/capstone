@@ -1,4 +1,4 @@
 model:
   path: model/path_to_model
 logging:
-  mode: human
+  mode: json

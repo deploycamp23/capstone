@@ -1,0 +1,8 @@
+[core]
+    autostage = true
+    remote = minio
+['remote "minio"']
+    url = s3://capstone
+    endpointurl = https://minio.deploycamp.ditwrd.dev
+    access_key_id = CHANGE-THIS
+    secret_access_key = CHANGE-THIS

@@ -1,0 +1,15 @@
+stages:
+  train:
+    cmd: uv run python src/train/cli.py --config training.yaml
+    deps:
+      - src/train/cli.py
+      - src/train/config.py
+      - src/train/data.py
+      - src/train/model.py
+      - src/train/train_core.py
+      - training.yaml
+    outs:
+      - models/model.pt
+    metrics:
+      - models/metrics.json:
+          cache: false

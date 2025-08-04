@@ -317,3 +317,4 @@ pyrightconfig.json
 
 # Build artifacts
 src/app/static/css/app.css
+.dvc/config

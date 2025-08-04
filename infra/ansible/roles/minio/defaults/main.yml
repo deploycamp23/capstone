@@ -1,0 +1,27 @@
+# Image and container
+minio_image: "minio/minio:latest"
+minio_container_name: "minio"
+
+# Paths
+minio_data_dir: "/opt/minio/data"
+
+# Network
+minio_network_main: "minio"
+minio_network_traefik: "traefik"
+
+# Domains
+minio_hostname: "minio.example.com"
+minio_admin_domain: "minio-admin.example.com"
+
+# Traefik cert resolver
+minio_traefik_cert_resolver: "letsencrypt"
+
+# Environment variables
+minio_root_user: "minioadmin"
+minio_root_password: "minioadmin"
+minio_region_name: "us-east-1"
+minio_browser: "on"
+minio_browser_redirect_url: ""
+
+# Logging
+minio_log_max_size: "10m"

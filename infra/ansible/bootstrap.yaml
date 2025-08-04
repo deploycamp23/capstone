@@ -9,6 +9,10 @@
       tags: ["firewall"]
     - role: geerlingguy.docker
       tags: ["docker"]
+    - role: rolehippie.traefik
+      tags: ["traefik"]
+    - role: minio
+      tags: ["minio"]
   pre_tasks:
     - name: bootstrap
       tags: ["bootstrap"]

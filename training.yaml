@@ -1,0 +1,12 @@
+seed: 42
+problem: car_price
+task: regression
+model_type: mlp
+epochs: 20
+lr: 0.001
+batch_size: 64
+train_size: 2048
+val_size: 512
+feature_dim: 32
+hidden_layers: [128, 64, 32]
+output_dir: models
