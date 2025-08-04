@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tailwind:build": "tailwindcss -i src/app/styles/input.css -o src/app/static/css/app.css --minify",
+    "tailwind:watch": "tailwindcss -i src/app/styles/input.css -o src/app/static/css/app.css --watch"
   },
   "keywords": [],
   "author": "",
@@ -13,5 +15,8 @@
   "dependencies": {
     "@tailwindcss/cli": "^4.1.11",
     "tailwindcss-animated": "^2.0.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.1.11"
   }
 }

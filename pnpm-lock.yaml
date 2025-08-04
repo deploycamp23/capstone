@@ -14,6 +14,10 @@ importers:
       tailwindcss-animated:
         specifier: ^2.0.0
         version: 2.0.0(tailwindcss@4.1.11)
+    devDependencies:
+      tailwindcss:
+        specifier: ^4.1.11
+        version: 4.1.11
 
 packages:
 
