@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 import threading
 import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import structlog
 import yaml
 
 try:
@@ -53,7 +55,10 @@ class ModelService:
             self._model = new_model
             self._model_path = path
             self._loaded_at = time.time()
-            print(f"[model] loaded: path={path} at={self._loaded_at}")
+
+            structlog.get_logger().info(
+                "model.loaded", path=str(path), loaded_at=self._loaded_at
+            )
         finally:
             self._lock.release_write()
 
@@ -84,14 +89,25 @@ class ModelService:
 
     def _load_model(self, path: Path) -> Any:
         if torch is None:
+
+            structlog.get_logger().info("model.mock", reason="torch_unavailable")
+
             class Mock:
                 def predict(self, text: str) -> str:  # type: ignore
                     return f"mock:{len(text)}"
+
             return Mock()
         try:
-            return torch.jit.load(str(path))
-        except Exception:
+            m = torch.jit.load(str(path))
+
+            structlog.get_logger().info("model.torch")
+            return m
+        except Exception as e:
+
+            structlog.get_logger().warning("model.fallback", error=str(e))
+
             class Fallback:
                 def predict(self, text: str) -> str:  # type: ignore
                     return f"fallback:{len(text)}"
+
             return Fallback()

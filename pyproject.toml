@@ -7,7 +7,9 @@ requires-python = ">=3.13"
 dependencies = [
     "dvc>=3.61.0",
     "fastapi[standard]>=0.116.1",
+    "granian>=2.5.0",
     "polars>=1.31.0",
+    "structlog>=25.4.0",
     "torch>=2.7.1",
     "watchfiles>=1.1.0",
 ]

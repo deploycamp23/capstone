@@ -1,2 +1,4 @@
 model:
-  path: model/path_to_model_4
+  path: model/path_to_model
+logging:
+  mode: human

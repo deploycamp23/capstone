@@ -1,14 +1,16 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.schemas import InferenceRequest, InferenceResponse
 from app.services.model_service import ModelService
 
 router = APIRouter(prefix="/api")
 
+
 def get_model_service() -> ModelService:
     from app.main import get_container
+
     return get_container()["model_service"]
 
 
@@ -23,7 +25,9 @@ def model_info(svc: ModelService = Depends(get_model_service)) -> dict:
 
 
 @router.post("/predict", response_model=InferenceResponse)
-def predict(req: InferenceRequest, svc: ModelService = Depends(get_model_service)) -> InferenceResponse:
+def predict(
+    req: InferenceRequest, svc: ModelService = Depends(get_model_service)
+) -> InferenceResponse:
     try:
         pred = svc.predict(req.payload)
         return InferenceResponse(prediction=pred)
