@@ -1,0 +1,67 @@
+all:
+  vars:
+
+deploycamp:
+  hosts:
+    deploycamp_a:
+      ansible_host: deploycamp
+
+      security_ssh_allowed_users:
+        - ubuntu
+      security_sudoers_passwordless:
+        - root
+        - ubuntu
+
+      firewall_flush_rules_and_chains: false
+
+      firewall_allowed_tcp_ports:
+        - "22"
+        - "80"
+        - "443"
+
+      docker_users:
+        - ubuntu
+
+      bootstrap_hostname: deploycamp_server_a
+
+      traefik_version: v3.5.0
+      traefik_send_anonymous_usage: False
+      traefik_prometheus_enabled: False
+      traefik_tracing_enabled: False
+
+      traefik_cert_resolvers:
+        - name: le
+          email: hi@ditwrd.dev
+          http_challenge:
+            entrypoint: http
+
+      traefik_dashboard_host_rule: traefik.deploycamp.ditwrd.dev
+      traefik_dashboard_cert_resolver: le
+      traefik_docker_network_name: kamal
+
+      # Hostnames
+
+      # Docker networks
+      docker_network_minio: "minio"
+      docker_network_traefik: "kamal"
+
+      # Volume path
+      minio_data_dir: "/home/ubuntu/minio"
+
+      # Image and container
+      minio_image: "quay.io/minio/minio"
+
+      # Paths
+
+      # Network
+      minio_network_main: "minio"
+      minio_network_traefik: "kamal"
+
+      # Domains
+      minio_hostname: "minio.deploycamp.ditwrd.dev"
+      minio_admin_domain: "admin.minio.deploycamp.ditwrd.dev"
+
+      # Traefik cert resolver
+      minio_traefik_cert_resolver: "le"
+      minio_service_user: ubuntu
+      minio_service_group: ubuntu

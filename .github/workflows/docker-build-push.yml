@@ -1,0 +1,64 @@
+name: Build and Push Docker Image
+
+on:
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install sops
+        run: |
+          curl -L https://github.com/mozilla/sops/releases/download/v3.9.1/sops-v3.9.1.linux.amd64 -o sops
+          chmod +x sops
+          sudo mv sops /usr/local/bin/
+
+      - name: Install yq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          curl -L https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64 -o yq
+          chmod +x yq
+          sudo mv yq /usr/local/bin/
+
+      - name: Decrypt env.yaml
+        run: |
+          sops --decrypt env.yaml > env.decrypted.yaml
+        env:
+          SOPS_AGE_KEY_FILE: ${{ secrets.SOPS_AGE_KEY_FILE }}
+
+      - name: Extract Docker token
+        id: docker-token
+        run: |
+          DOCKER_TOKEN=$(yq '.docker_token' env.decrypted.yaml)
+          echo "::add-mask::$DOCKER_TOKEN"
+          echo "token=$DOCKER_TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ditw11
+          password: ${{ steps.docker-token.outputs.token }}
+
+      - name: Extract commit SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ditw11/deploycamp-capstone:${{ steps.vars.outputs.sha_short }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}

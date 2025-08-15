@@ -1,0 +1,45 @@
+#!/usr/bin/env ansible-playbook
+- name: sync models and update config
+  hosts: deploycamp
+  become: true
+  vars:
+    local_models_path: "{{ lookup('env','PWD') }}/models"
+    remote_models_path: "/home/ubuntu/models"
+    new_model_filename: "{{ lookup('env','NEW_MODEL_FILENAME') | default('', true) }}"
+    config_path: "/home/ubuntu/config.yaml"
+  tasks:
+    - name: ensure remote models directory exists
+      ansible.builtin.file:
+        path: "{{ remote_models_path }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+
+    - name: rsync local models to server
+      ansible.builtin.synchronize:
+        src: "{{ local_models_path }}/"
+        dest: "{{ remote_models_path }}/"
+        archive: true
+        delete: false
+        rsync_opts:
+          - "--chmod=Fu=rw,Fg=r,Fa=r,Du=rwx,Dg=rx,Da=rx"
+      delegate_to: localhost
+
+    - name: update config.yaml path to new model filename if provided
+      when: new_model_filename | length > 0
+      ansible.builtin.lineinfile:
+        path: "{{ config_path }}"
+        regexp: '^\s*path:\s*'
+        line: "path: {{ remote_models_path }}/{{ new_model_filename }}"
+        backrefs: false
+        create: false
+      become: false
+
+    - name: ensure config ownership
+      ansible.builtin.file:
+        path: "{{ config_path }}"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
+      when: ansible_facts.exists is not defined or ansible_facts.exists

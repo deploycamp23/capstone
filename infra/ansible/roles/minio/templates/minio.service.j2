@@ -1,0 +1,63 @@
+[Unit]
+Description=MinIO Object Storage
+After=docker.service
+Requires=docker.service
+
+[Service]
+User={{ minio_service_user | default('root') }}
+Group={{ minio_service_group | default('root') }}
+Restart=always
+RestartSec=5
+
+# Create networks if not exist, ignore error if they exist
+ExecStartPre=-/bin/sh -c "/usr/bin/docker network create {{ minio_network_traefik }} || true"
+
+# Remove existing container if any, ignore error if none
+ExecStartPre=-/bin/sh -c "/usr/bin/docker rm -f {{ minio_container_name }} || true"
+
+ExecStart=/usr/bin/docker run --name {{ minio_container_name }} \
+  --network {{ minio_network_traefik }} \
+  --label "traefik.enable=true" \
+  --label "traefik.docker.network={{ minio_network_traefik }}" \
+  --label "traefik.http.middlewares.minio-gzip.compress=true" \
+  --label "traefik.http.middlewares.minio-redir-https.redirectScheme.scheme=https" \
+  --label "traefik.http.routers.minio-http.entrypoints=http" \
+  --label "traefik.http.routers.minio-http.rule=Host(`{{ minio_hostname }}`)" \
+  --label "traefik.http.routers.minio-http.middlewares=minio-redir-https" \
+  --label "traefik.http.routers.minio-http.service=minio-backend" \
+  --label "traefik.http.routers.minio-https.middlewares=minio-gzip" \
+  --label "traefik.http.routers.minio-https.entrypoints=https" \
+  --label "traefik.http.routers.minio-https.tls=true" \
+  --label "traefik.http.routers.minio-https.tls.certresolver={{ minio_traefik_cert_resolver }}" \
+  --label "traefik.http.routers.minio-https.rule=Host(`{{ minio_hostname }}`)" \
+  --label "traefik.http.routers.minio-https.service=minio-backend" \
+  --label "traefik.http.routers.minio-admin.middlewares=minio-gzip" \
+  --label "traefik.http.routers.minio-admin.entrypoints=https" \
+  --label "traefik.http.routers.minio-admin.tls=true" \
+  --label "traefik.http.routers.minio-admin.tls.certresolver={{ minio_traefik_cert_resolver }}" \
+  --label "traefik.http.routers.minio-admin.rule=Host(`{{ minio_admin_domain }}`)" \
+  --label "traefik.http.routers.minio-admin.service=minio-admin-backend" \
+  --label "traefik.http.services.minio-backend.loadbalancer.server.scheme=http" \
+  --label "traefik.http.services.minio-backend.loadbalancer.server.port=9000" \
+  --label "traefik.http.services.minio-admin-backend.loadbalancer.server.scheme=http" \
+  --label "traefik.http.services.minio-admin-backend.loadbalancer.server.port=9001" \
+  -v {{ minio_data_dir }}:/data:z \
+  -e MINIO_ROOT_USER={{ minio_root_user }} \
+  -e MINIO_ROOT_PASSWORD={{ minio_root_password }} \
+  -e MINIO_REGION_NAME={{ minio_region_name }} \
+  -e MINIO_BROWSER={{ minio_browser }} \
+  -e MINIO_BROWSER_REDIRECT_URL={{ minio_browser_redirect_url }} \
+  --health-cmd="curl -f http://localhost:9000/minio/health/live" \
+  --health-interval=3s \
+  --health-retries=12 \
+  --log-driver=json-file \
+  --log-opt max-size={{ minio_log_max_size }} \
+  {{ minio_image }} server /data --console-address 0.0.0.0:9001
+
+ExecStartPost=/bin/sh -c "/usr/bin/docker network connect {{ minio_network_traefik }} {{ minio_container_name }} || true"
+
+ExecStop=/bin/sh -c "/usr/bin/docker stop -t 10 {{ minio_container_name }} || true"
+ExecStopPost=/bin/sh -c "/usr/bin/docker rm -f {{ minio_container_name }} || true"
+
+[Install]
+WantedBy=multi-user.target

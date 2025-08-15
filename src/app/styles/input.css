@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+.btn {
+  @apply inline-flex items-center justify-center font-medium rounded transition;
+}
